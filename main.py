@@ -13,7 +13,7 @@ n = 100
 lamb = 10
 
 mean = 0
-sigma = 10
+sigma = 1
 
 X = utils.gaussian_mat(mean, sigma, n, d)
 
@@ -49,3 +49,5 @@ mus = [2, 15, 30, 50, 100, 200]
 dict_iterates, dict_f0_iterates = utils.compare_mus(mus, Q, p, A, b, v0, eps, t0)
 
 utils.compare_opti_gaps(dict_iterates, dict_f0_iterates)
+
+utils.compare_precisions(dict_iterates, 2 * d, t0)
