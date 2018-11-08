@@ -1,9 +1,15 @@
 import numpy as np
 import warnings
 
+warnings.filterwarnings("error")
+
 
 def phi(A, b, v):
-    return - np.sum(np.log(- np.dot(A, v) + b))
+    try:
+        g = - np.sum(np.log(- np.dot(A, v) + b))
+    except RuntimeWarning:
+        g = np.inf
+    return g
 
 
 def objective(Q, p, v):
@@ -11,7 +17,8 @@ def objective(Q, p, v):
 
 
 def logbarrier_objective(Q, p, A, b, t, v):
-    return t * objective(Q, p, v) + phi(A, b, v)
+    obj = t * objective(Q, p, v) + phi(A, b, v)
+    return obj
 
 
 def gradient(Q, p, A, b, t, v):
@@ -52,6 +59,7 @@ def bktk_line_search(Q, p, A, b, t, v, delta, alpha, beta, maxit):
     eta = 1
     grad = gradient(Q, p, A, b, t, v)
     fv = logbarrier_objective(Q, p, A, b, t, v)
+    print(fv)
     for k in range(0, maxit):
         c = logbarrier_objective(Q, p, A, b, t, v + eta * delta)
         d = fv + alpha * eta * np.dot(grad, delta)
@@ -67,10 +75,11 @@ def centering_step(Q, p, A, b, t, v0,
                    eps=0.001,
                    maxit_newton=1000,
                    maxit_search=100,
-                   alpha=0.2,
-                   beta=0.7):
+                   alpha=0.1,
+                   beta=0.5):
     v = v0.copy()
     iterates = [v.copy()]
+    print(logbarrier_objective(Q, p, A, b, t, v))
     for m in range(0, maxit_newton):
         delta, lamb_sqr = newton_update(Q, p, A, b, t, v)
         eta = bktk_line_search(Q, p, A, b, t, v, delta,
@@ -78,7 +87,10 @@ def centering_step(Q, p, A, b, t, v0,
         if lamb_sqr / 2 <= eps:
             return iterates
         v += eta * delta
-        print(logbarrier_objective(Q, p, A, b, t, v))
+        # print(eta)
+        # print(m)
+        # print(logbarrier_objective(Q, p, A, b, t, v))
+        # print(phi(A, b, v))
         iterates.append(v.copy())
     warnings.warn("Newton: Maxit attained, no garanties of convergence")
     return iterates
@@ -86,15 +98,16 @@ def centering_step(Q, p, A, b, t, v0,
 
 def barr_method(Q, p, A, b, v0, eps, t0, mu, maxit=1000):
     d = A.shape[0]
-    v = v0.copy()
+    vt = v0.copy()
     t = t0
-    iterates = [v.copy()]
+    iterates = [vt.copy()]
     for k in range(0, maxit):
-        v = centering_step(Q, p, A, b, t, v, eps)[-1]
-        iterates.append(v.copy())
+        vtplus1 = centering_step(Q, p, A, b, t, vt, eps)[-1]
+        iterates.append(vtplus1.copy())
         if d / t < eps:
             return iterates
         t *= mu
+        vt = vtplus1
     warnings.warn("Barrier method: Maxit attained, no garanties of convergence")
     return iterates
 
