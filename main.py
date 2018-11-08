@@ -45,7 +45,7 @@ eps = 0.001
 # f0_iterates = utils.objective_iterates(barrier_iterates, Q, p)
 
 
-mus = [2, 15, 50, 100, 200]
+mus = [2, 15, 30, 50, 100, 200]
 dict_iterates, dict_f0_iterates = utils.compare_mus(mus, Q, p, A, b, v0, eps, t0)
 
-utils.compare_opti_gaps(dict_f0_iterates)
+utils.compare_opti_gaps(dict_iterates, dict_f0_iterates)
